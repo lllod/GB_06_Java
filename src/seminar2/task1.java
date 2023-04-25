@@ -16,9 +16,8 @@ package seminar2;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.util.*;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,78 +26,98 @@ import java.util.logging.SimpleFormatter;
 public class task1 {
     public static void main(String[] args) throws FileNotFoundException {
         String file = "students-list.txt";
-        String txt = jsonString(file);
-        System.out.println(txt);
-        assert txt != null;
-        test(txt);
+        String jsonString = jsonString(file);
+        assert jsonString != null;
+        savetoFile(createStrings(jsonString));
     }
 
-//
-//    static void textToList(String originalString){
-//        String Str = originalString.replaceAll("[\\[\\]{} ]", "");
-//        Map<String, Object> row1 = new HashMap<String, Object>();
-//        Map<String, Object> row2 = new HashMap<String, Object>();
-//        Map<String, Object> row3 = new HashMap<String, Object>();
-//
-//    }
 
-
-
-    static void test(String testString) {
+    static String createStrings(String testString) {
         String Str = testString.replaceAll("[\\[\\]\"{} ]", "");
         int stringLines = Str.split(",").length;
         String[][] studentsArray = new String[stringLines][2];
-        Hashtable<Object, Hashtable<String, Objects>> students = new Hashtable<Object, Hashtable<String, Objects>>();
         int tempLine = 0;
 
-
-        for (String reveal: Str.split(",")) {
-            for (String i:reveal.split(":")) {
-                studentsArray[tempLine] = i;
-                temp
+        for (String reveal : Str.split(",")) {
+            int tempSubLine = 0;
+            for (String i : reveal.split(":")) {
+                studentsArray[tempLine][tempSubLine] = i;
+                tempSubLine++;
             }
             tempLine++;
         }
-        System.out.println(Arrays.deepToString(studentsArray));
-        for (int i = 1; i < (stringLines/3)+1; i++) {
-            students.put(Character.toString((char) i), getDictionary(studentsArray, i));
+
+        String[] t = new String[]{"Студент ", " получил ", " по предмету "};
+        StringBuilder result = new StringBuilder();
+
+        int i = 0;
+        for (String[] j : studentsArray) {
+            result.append(t[i]);
+            result.append(j[1]);
+            i++;
+            if (i > 2) {
+                result.append(".\n");
+                i = 0;
+            }
         }
-//        System.out.println(stringLines);
-        System.out.println(students);
+
+        return result.toString();
     }
 
-    static Hashtable getDictionary(String[][] str, int count){
-        Hashtable<Object, String> person = new Hashtable<Object, String>();
-//        for (int i = 0; i < 3; i++) {
-//            person.put();
-//        }
-        return null;
+
+    static void savetoFile(String result) {
+        Logger logger = Logger.getAnonymousLogger();
+        FileHandler fileHandler = null;
+
+        try {
+            fileHandler = new FileHandler("log_saveToFile.txt");
+            logger.addHandler(fileHandler);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        SimpleFormatter formatter = new SimpleFormatter();
+        assert fileHandler != null;
+        fileHandler.setFormatter(formatter);
+
+        try (FileWriter saveFile = new FileWriter("result-list.txt", false)) {
+            saveFile.append(result);
+            saveFile.flush();
+            logger.log(Level.INFO, "Данные успешно записаны в файл!");
+        } catch (IOException e) {
+            logger.log(Level.WARNING, e.getMessage());
+        }
+
+        fileHandler.close();
     }
 
     static String jsonString(String studentsList) throws FileNotFoundException {
         Logger logger = Logger.getAnonymousLogger();
         FileHandler fileHandler = null;
+
         try {
             fileHandler = new FileHandler("log.txt");
         } catch (IOException e) {
             e.printStackTrace();
         }
+
         SimpleFormatter formatter = new SimpleFormatter();
         assert fileHandler != null;
         fileHandler.setFormatter(formatter);
         logger.addHandler(fileHandler);
         StringBuilder stringBuilder = new StringBuilder();
+
         try (FileReader fileReader = new FileReader(studentsList)) {
             int letter;
             while ((letter = fileReader.read()) > 0) {
                 stringBuilder.append((char) letter);
             }
+            fileHandler.close();
             return stringBuilder.toString();
         } catch (IOException e) {
             logger.log(Level.WARNING, e.getMessage());
+            return null;
         }
-        fileHandler.close();
-        return null;
     }
 
 
